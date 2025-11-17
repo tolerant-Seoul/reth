@@ -1,0 +1,51 @@
+[package]
+name = "reth-consensus-wbft"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+exclude.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+# reth
+reth-primitives.workspace = true
+reth-consensus.workspace = true
+reth-chainspec.workspace = true
+
+# ethereum
+alloy-primitives.workspace = true
+alloy-rlp.workspace = true
+alloy-consensus.workspace = true
+
+# BLS signature library
+blst = "0.3"
+getrandom = "0.2"
+
+# async
+tokio = { workspace = true, features = ["full"] }
+
+# crypto
+k256 = { workspace = true, features = ["ecdsa"] }
+
+# metrics
+metrics.workspace = true
+
+# tracing
+tracing.workspace = true
+
+# misc
+thiserror.workspace = true
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+hex = "0.4"
+
+[features]
+default = []
+test-utils = []

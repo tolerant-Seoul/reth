@@ -7774,6 +7774,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "reth-consensus-wbft"
+version = "1.9.2"
+dependencies = [
+ "alloy-consensus",
+ "alloy-primitives",
+ "alloy-rlp",
+ "blst",
+ "getrandom 0.2.16",
+ "hex",
+ "k256",
+ "metrics",
+ "reth-chainspec",
+ "reth-consensus",
+ "reth-primitives",
+ "serde",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "reth-db"
 version = "1.9.2"
 dependencies = [
