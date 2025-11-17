@@ -19,7 +19,7 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 
 - **State Machine** (`types`): Core data structures (View, Subject, State)
 - **BLS Signatures** (`bls`): Key management, signing, and aggregation
-- **Message Protocol** (planned): PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE messages
+- **Message Protocol** (`messages`): PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE messages
 - **Validator Management** (planned): Validator set management and proposer selection
 - **Network Layer** (planned): P2P message broadcasting and handling
 
@@ -31,11 +31,12 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - ✅ BLS signature implementation
 - ✅ Signature aggregation
 - ✅ Sealer set bitmap
-- ✅ Comprehensive test coverage (29 tests passing)
+- ✅ Message data types (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
+- ✅ Comprehensive test coverage (83 tests passing)
 
 ### Next Phases
 
-- Phase 2: Message types and protocol logic
+- Phase 2: Consensus state machine and message handling logic
 - Phase 3: Consensus trait implementation
 - Phase 4: Network integration
 - Phase 5: Testing and optimization
@@ -47,7 +48,9 @@ use reth_consensus_wbft::{
     SecretKey, PublicKey, Signature,
     aggregate_signatures, verify_aggregated,
     View, State, Subject,
+    PrePrepare, Prepare, Commit, RoundChange,
 };
+use alloy_primitives::{Address, Bytes, B256, U256};
 
 // Generate BLS keys
 let sk = SecretKey::random();
@@ -59,6 +62,27 @@ let signature = sk.sign(message);
 
 // Verify signature
 assert!(pk.verify(message, &signature));
+
+// Create consensus messages
+let view = View { sequence: U256::from(1), round: U256::from(0) };
+let proposal = B256::from([0x42; 32]);
+
+// PRE-PREPARE message from proposer
+let preprepare = PrePrepare::new(
+    view.clone(),
+    proposal,
+    Bytes::from(vec![/* block data */]),
+    Address::from([0x01; 20]),
+    signature.to_bytes(),
+);
+
+// PREPARE message from validator
+let prepare = Prepare::new(
+    view.clone(),
+    proposal,
+    Address::from([0x02; 20]),
+    signature.to_bytes(),
+);
 
 // Aggregate multiple signatures
 let signatures = vec![sig1, sig2, sig3];
@@ -77,13 +101,16 @@ Run tests with:
 cargo test -p reth-consensus-wbft
 ```
 
-All 29 unit tests currently pass, covering:
+All 83 unit tests currently pass, covering:
 - BLS key generation and serialization
 - Signature creation and verification
 - Signature aggregation (2-7 validators)
 - Sealer set bitmap operations
 - View ordering and comparison
 - RLP encoding/decoding
+- Message creation and validation (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
+- Message signature verification
+- WbftMessage trait implementation
 
 ## Dependencies
 

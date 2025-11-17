@@ -25,6 +25,7 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 pub mod bls;
+pub mod messages;
 pub mod types;
 
 // Re-export commonly used types
@@ -35,3 +36,6 @@ pub use bls::{
     aggregate_signatures, verify_aggregated, PublicKey, SealerSet, SecretKey, Signature,
     WbftAggregatedSeal,
 };
+
+// Re-export message types
+pub use messages::{Commit, MessageError, PrePrepare, Prepare, RoundChange, WbftMessage};
