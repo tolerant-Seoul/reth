@@ -7,7 +7,7 @@ use reth_chainspec::ChainSpec;
 use reth_consensus::{Consensus, ConsensusError, FullConsensus, HeaderValidator};
 use reth_consensus_common::validation::validate_body_against_header;
 use reth_execution_types::BlockExecutionResult;
-use reth_primitives_traits::{Block, NodePrimitives, RecoveredBlock, SealedBlock, SealedHeader};
+use reth_primitives_traits::{AlloyBlockHeader, Block, NodePrimitives, RecoveredBlock, SealedBlock, SealedHeader};
 use std::sync::Arc;
 
 /// WBFT consensus configuration
@@ -182,12 +182,37 @@ where
 {
     fn validate_block_post_execution(
         &self,
-        _block: &RecoveredBlock<N::Block>,
+        block: &RecoveredBlock<N::Block>,
         _result: &BlockExecutionResult<N::Receipt>,
     ) -> Result<(), ConsensusError> {
-        // TODO: Implement post-execution validation
-        // This will be implemented in Phase 3.4 (FullConsensus trait)
-        // For now, accept all blocks to allow integration testing
+        // WBFT post-execution validation:
+        // 1. Epoch transition validation (if epoch block)
+        // 2. Future: Verify state changes from system contracts
+
+        // Check if this is an epoch block
+        // RecoveredBlock implements BlockHeader trait, so we can call number() and extra_data() directly
+        if self.is_epoch_block(block.number()) {
+            // Parse extra data to verify epoch info is present
+            let extra = crate::header::WbftExtra::decode(block.extra_data())
+                .map_err(|_| ConsensusError::BaseFeeMissing)?; // TODO: Better error type
+
+            // Epoch blocks must contain epoch information
+            if extra.epoch_info.is_none() {
+                return Err(ConsensusError::BaseFeeMissing); // TODO: Better error type
+            }
+
+            // TODO: Validate epoch transition:
+            // - Verify validator set changes from GovValidator contract
+            // - Validate candidate list and diligence scores
+            // - Verify BLS public keys match contract state
+            // - Ensure gas tip is set correctly
+        }
+
+        // TODO: Additional post-execution validation:
+        // - Verify system contract state changes
+        // - Validate governance operations
+        // - Check validator rewards distribution
+
         Ok(())
     }
 }
