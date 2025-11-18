@@ -25,6 +25,7 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 pub mod bls;
+pub mod consensus;
 pub mod core;
 pub mod header;
 pub mod messages;
@@ -54,3 +55,6 @@ pub use validator::{
 
 // Re-export header types
 pub use header::{prepare_seal_hash, Candidate, EpochInfo, SealType, WbftExtra};
+
+// Re-export consensus types
+pub use consensus::{WbftConfig, WbftConsensus};

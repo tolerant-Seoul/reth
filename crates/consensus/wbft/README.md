@@ -49,15 +49,25 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 
 ### Phase 3: Validation and Reth Integration (In Progress)
 
+#### Phase 3.1: Block Header Extra Data (Completed)
 - ✅ WBFTExtra structure for block header extra data
 - ✅ EpochInfo and Candidate types for validator management
 - ✅ prepare_seal_hash function for BLS signing
 - ✅ RLP encoding/decoding with Option handling
-- ✅ Comprehensive test coverage (141 tests passing)
+
+#### Phase 3.2: Consensus Trait Implementation (Completed)
+- ✅ WbftConsensus struct with configuration
+- ✅ HeaderValidator trait implementation (stub for Phase 3.3)
+- ✅ Consensus trait with validate_body_against_header
+- ✅ Consensus trait with validate_block_pre_execution
+- ✅ FullConsensus trait implementation (stub for Phase 3.4)
 
 ### Next Phases
 
-- Phase 3 (continued): Consensus trait implementation and header validation
+- Phase 3.3: HeaderValidator trait - validate_header and validate_header_against_parent
+- Phase 3.4: FullConsensus trait - validate_block_post_execution
+- Phase 3.5: ChainSpec Integration
+- Phase 3.6: Genesis Initialization
 - Phase 4: Network integration
 - Phase 5: Testing and optimization
 
@@ -72,8 +82,10 @@ use reth_consensus_wbft::{
     Validator, ValidatorSet, DefaultValidator, DefaultValidatorSet,
     ProposerPolicy, calc_proposer,
     WbftExtra, EpochInfo, Candidate, SealType, prepare_seal_hash,
+    WbftConfig, WbftConsensus,
 };
 use alloy_primitives::{Address, Bytes, B256, U256};
+use reth_chainspec::MAINNET;
 
 // Generate BLS keys
 let sk = SecretKey::random();
@@ -161,6 +173,20 @@ let block_hash = B256::from([0x42; 32]);
 let round = 0;
 let prepare_hash = prepare_seal_hash(block_hash, round, SealType::Prepare);
 let commit_hash = prepare_seal_hash(block_hash, round, SealType::Commit);
+
+// Create WBFT consensus instance
+let wbft_config = WbftConfig {
+    request_timeout_seconds: 2,
+    block_period_seconds: 1,
+    proposer_policy: 0, // RoundRobin
+    epoch_length: 10,
+    max_request_timeout_seconds: None,
+};
+let consensus = WbftConsensus::new(MAINNET.clone(), wbft_config);
+
+// Check if a block is an epoch block
+let is_epoch = consensus.is_epoch_block(10); // true
+let is_regular = consensus.is_epoch_block(5); // false
 ```
 
 ## Testing
@@ -171,7 +197,7 @@ Run tests with:
 cargo test -p reth-consensus-wbft
 ```
 
-All 141 unit tests currently pass, covering:
+All 146 unit tests currently pass, covering:
 - BLS key generation and serialization
 - Signature creation and verification
 - Signature aggregation (2-7 validators)
@@ -192,6 +218,8 @@ All 141 unit tests currently pass, covering:
 - WBFTExtra encoding/decoding with Option handling
 - EpochInfo and Candidate structures
 - prepare_seal_hash for different seal types and rounds
+- WbftConsensus configuration and creation
+- Epoch block detection
 
 ## Dependencies
 

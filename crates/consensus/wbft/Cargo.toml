@@ -15,7 +15,10 @@ workspace = true
 # reth
 reth-primitives.workspace = true
 reth-consensus.workspace = true
+reth-consensus-common.workspace = true
 reth-chainspec.workspace = true
+reth-execution-types.workspace = true
+reth-primitives-traits.workspace = true
 
 # ethereum
 alloy-primitives.workspace = true
