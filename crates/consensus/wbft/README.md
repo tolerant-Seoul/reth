@@ -21,7 +21,7 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - **BLS Signatures** (`bls`): Key management, signing, and aggregation
 - **Message Protocol** (`messages`): PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE messages
 - **Core Engine** (`core`): Consensus state machine and message processing
-- **Validator Management** (planned): Validator set management and proposer selection
+- **Validator Management** (`validator`): Validator set management and proposer selection
 - **Network Layer** (planned): P2P message broadcasting and handling
 
 ## Current Implementation Status
@@ -34,7 +34,7 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - ✅ Sealer set bitmap
 - ✅ Message data types (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
 
-### Phase 2: Core State Machine (In Progress)
+### Phase 2: Core State Machine (Completed)
 
 - ✅ Core consensus engine structure
 - ✅ Backend trait for blockchain integration
@@ -42,11 +42,13 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - ✅ State transition handlers (AcceptRequest → Preprepared → Prepared → Committed)
 - ✅ Round change message handling
 - ✅ Quorum calculation and validation
-- ✅ Comprehensive test coverage (98 tests passing)
+- ✅ Validator trait and DefaultValidator
+- ✅ ValidatorSet trait and DefaultValidatorSet
+- ✅ ProposerPolicy (RoundRobin, Sticky)
+- ✅ Comprehensive test coverage (128 tests passing)
 
 ### Next Phases
 
-- Phase 2 (continued): Validator set management and proposer selection
 - Phase 3: Consensus trait implementation
 - Phase 4: Network integration
 - Phase 5: Testing and optimization
@@ -59,6 +61,8 @@ use reth_consensus_wbft::{
     aggregate_signatures, verify_aggregated,
     View, State, Subject,
     PrePrepare, Prepare, Commit, RoundChange,
+    Validator, ValidatorSet, DefaultValidator, DefaultValidatorSet,
+    ProposerPolicy, calc_proposer,
 };
 use alloy_primitives::{Address, Bytes, B256, U256};
 
@@ -101,6 +105,26 @@ let aggregated = aggregate_signatures(&signatures)?;
 // Verify aggregated signature
 let public_keys = vec![&pk1, &pk2, &pk3];
 assert!(verify_aggregated(&public_keys, message, &aggregated)?);
+
+// Create validator set
+let validators = vec![
+    DefaultValidator::new(Address::from([0x01; 20]), pk1.to_bytes()),
+    DefaultValidator::new(Address::from([0x02; 20]), pk2.to_bytes()),
+    DefaultValidator::new(Address::from([0x03; 20]), pk3.to_bytes()),
+    DefaultValidator::new(Address::from([0x04; 20]), pk4.to_bytes()),
+];
+let mut validator_set = DefaultValidatorSet::new(validators)?;
+
+// Calculate proposer using round-robin
+let proposer = calc_proposer(
+    ProposerPolicy::RoundRobin,
+    &mut validator_set,
+    Address::ZERO,
+    0, // round
+)?;
+
+// Quorum calculation (2f+1 where f = (n-1)/3)
+let quorum = validator_set.quorum_size(); // 3 for 4 validators
 ```
 
 ## Testing
@@ -111,7 +135,7 @@ Run tests with:
 cargo test -p reth-consensus-wbft
 ```
 
-All 98 unit tests currently pass, covering:
+All 128 unit tests currently pass, covering:
 - BLS key generation and serialization
 - Signature creation and verification
 - Signature aggregation (2-7 validators)
@@ -126,6 +150,9 @@ All 98 unit tests currently pass, covering:
 - Quorum calculation
 - Proposer rotation
 - MessageSet operations
+- Validator trait and DefaultValidator
+- ValidatorSet trait and DefaultValidatorSet
+- ProposerPolicy (RoundRobin, Sticky)
 
 ## Dependencies
 

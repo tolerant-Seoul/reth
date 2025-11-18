@@ -28,6 +28,7 @@ pub mod bls;
 pub mod core;
 pub mod messages;
 pub mod types;
+pub mod validator;
 
 // Re-export commonly used types
 pub use types::{State, Subject, View};
@@ -43,3 +44,9 @@ pub use messages::{Commit, MessageError, PrePrepare, Prepare, RoundChange, WbftM
 
 // Re-export core types
 pub use core::{Backend, Core, CoreError, MessageSet};
+
+// Re-export validator types
+pub use validator::{
+    calc_proposer, DefaultValidator, DefaultValidatorSet, ProposerPolicy, Validator,
+    ValidatorError, ValidatorSet,
+};

@@ -5,13 +5,10 @@
 
 use crate::{
     messages::{Commit, MessageError, PrePrepare, Prepare, RoundChange, WbftMessage},
-    types::{State, Subject, View},
+    types::{State, View},
 };
 use alloy_primitives::{Address, B256};
-use std::{
-    collections::HashMap,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, sync::Arc};
 use thiserror::Error;
 
 pub mod backend;
@@ -355,7 +352,6 @@ impl<B: Backend> Core<B> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bls::SecretKey;
     use alloy_primitives::{Bytes, U256};
 
     /// Mock backend for testing
