@@ -25,6 +25,7 @@
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
 
 pub mod bls;
+pub mod core;
 pub mod messages;
 pub mod types;
 
@@ -39,3 +40,6 @@ pub use bls::{
 
 // Re-export message types
 pub use messages::{Commit, MessageError, PrePrepare, Prepare, RoundChange, WbftMessage};
+
+// Re-export core types
+pub use core::{Backend, Core, CoreError, MessageSet};

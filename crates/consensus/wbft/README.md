@@ -20,6 +20,7 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - **State Machine** (`types`): Core data structures (View, Subject, State)
 - **BLS Signatures** (`bls`): Key management, signing, and aggregation
 - **Message Protocol** (`messages`): PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE messages
+- **Core Engine** (`core`): Consensus state machine and message processing
 - **Validator Management** (planned): Validator set management and proposer selection
 - **Network Layer** (planned): P2P message broadcasting and handling
 
@@ -32,11 +33,20 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - ✅ Signature aggregation
 - ✅ Sealer set bitmap
 - ✅ Message data types (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
-- ✅ Comprehensive test coverage (83 tests passing)
+
+### Phase 2: Core State Machine (In Progress)
+
+- ✅ Core consensus engine structure
+- ✅ Backend trait for blockchain integration
+- ✅ MessageSet for message storage
+- ✅ State transition handlers (AcceptRequest → Preprepared → Prepared → Committed)
+- ✅ Round change message handling
+- ✅ Quorum calculation and validation
+- ✅ Comprehensive test coverage (98 tests passing)
 
 ### Next Phases
 
-- Phase 2: Consensus state machine and message handling logic
+- Phase 2 (continued): Validator set management and proposer selection
 - Phase 3: Consensus trait implementation
 - Phase 4: Network integration
 - Phase 5: Testing and optimization
@@ -101,7 +111,7 @@ Run tests with:
 cargo test -p reth-consensus-wbft
 ```
 
-All 83 unit tests currently pass, covering:
+All 98 unit tests currently pass, covering:
 - BLS key generation and serialization
 - Signature creation and verification
 - Signature aggregation (2-7 validators)
@@ -111,6 +121,11 @@ All 83 unit tests currently pass, covering:
 - Message creation and validation (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
 - Message signature verification
 - WbftMessage trait implementation
+- Core state machine transitions
+- Message handling (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
+- Quorum calculation
+- Proposer rotation
+- MessageSet operations
 
 ## Dependencies
 
