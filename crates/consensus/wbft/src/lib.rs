@@ -26,6 +26,7 @@
 
 pub mod bls;
 pub mod core;
+pub mod header;
 pub mod messages;
 pub mod types;
 pub mod validator;
@@ -50,3 +51,6 @@ pub use validator::{
     calc_proposer, DefaultValidator, DefaultValidatorSet, ProposerPolicy, Validator,
     ValidatorError, ValidatorSet,
 };
+
+// Re-export header types
+pub use header::{prepare_seal_hash, Candidate, EpochInfo, SealType, WbftExtra};

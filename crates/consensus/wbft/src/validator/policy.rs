@@ -2,7 +2,7 @@
 //!
 //! Implements different strategies for selecting block proposers.
 
-use super::{Validator, ValidatorError, ValidatorSet};
+use super::{ValidatorError, ValidatorSet};
 use alloy_primitives::Address;
 
 /// Proposer selection policy
@@ -117,7 +117,7 @@ pub fn sticky_proposer<V: ValidatorSet + ?Sized>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::validator::{DefaultValidator, DefaultValidatorSet};
+    use crate::validator::{DefaultValidator, DefaultValidatorSet, Validator};
 
     fn create_test_set(count: usize) -> DefaultValidatorSet {
         let validators: Vec<_> = (0..count)

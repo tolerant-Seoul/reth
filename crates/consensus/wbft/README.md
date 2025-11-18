@@ -47,9 +47,17 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 - ✅ ProposerPolicy (RoundRobin, Sticky)
 - ✅ Comprehensive test coverage (128 tests passing)
 
+### Phase 3: Validation and Reth Integration (In Progress)
+
+- ✅ WBFTExtra structure for block header extra data
+- ✅ EpochInfo and Candidate types for validator management
+- ✅ prepare_seal_hash function for BLS signing
+- ✅ RLP encoding/decoding with Option handling
+- ✅ Comprehensive test coverage (141 tests passing)
+
 ### Next Phases
 
-- Phase 3: Consensus trait implementation
+- Phase 3 (continued): Consensus trait implementation and header validation
 - Phase 4: Network integration
 - Phase 5: Testing and optimization
 
@@ -63,6 +71,7 @@ use reth_consensus_wbft::{
     PrePrepare, Prepare, Commit, RoundChange,
     Validator, ValidatorSet, DefaultValidator, DefaultValidatorSet,
     ProposerPolicy, calc_proposer,
+    WbftExtra, EpochInfo, Candidate, SealType, prepare_seal_hash,
 };
 use alloy_primitives::{Address, Bytes, B256, U256};
 
@@ -125,6 +134,33 @@ let proposer = calc_proposer(
 
 // Quorum calculation (2f+1 where f = (n-1)/3)
 let quorum = validator_set.quorum_size(); // 3 for 4 validators
+
+// Create block header extra data
+let mut extra = WbftExtra::new();
+extra.round = 0;
+extra.gas_tip = U256::from(1_000_000_000u64); // 1 Gwei
+
+// Add epoch information (for genesis/epoch blocks)
+let epoch_info = EpochInfo {
+    candidates: vec![
+        Candidate { addr: Address::from([0x01; 20]), diligence: 950_000 },
+    ],
+    validators: vec![0],
+    bls_public_keys: vec![vec![0x42; 48]],
+};
+extra.epoch_info = Some(epoch_info);
+
+// Encode extra data for block header
+let encoded_extra = extra.encode();
+
+// Decode extra data from block header
+let decoded_extra = WbftExtra::decode(&encoded_extra)?;
+
+// Calculate prepare seal hash for signing
+let block_hash = B256::from([0x42; 32]);
+let round = 0;
+let prepare_hash = prepare_seal_hash(block_hash, round, SealType::Prepare);
+let commit_hash = prepare_seal_hash(block_hash, round, SealType::Commit);
 ```
 
 ## Testing
@@ -135,7 +171,7 @@ Run tests with:
 cargo test -p reth-consensus-wbft
 ```
 
-All 128 unit tests currently pass, covering:
+All 141 unit tests currently pass, covering:
 - BLS key generation and serialization
 - Signature creation and verification
 - Signature aggregation (2-7 validators)
@@ -153,6 +189,9 @@ All 128 unit tests currently pass, covering:
 - Validator trait and DefaultValidator
 - ValidatorSet trait and DefaultValidatorSet
 - ProposerPolicy (RoundRobin, Sticky)
+- WBFTExtra encoding/decoding with Option handling
+- EpochInfo and Candidate structures
+- prepare_seal_hash for different seal types and rounds
 
 ## Dependencies
 
