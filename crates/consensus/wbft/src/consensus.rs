@@ -87,22 +87,67 @@ impl WbftConsensus {
     }
 }
 
-impl<H: alloy_consensus::BlockHeader> HeaderValidator<H> for WbftConsensus {
-    fn validate_header(&self, _header: &SealedHeader<H>) -> Result<(), ConsensusError> {
-        // TODO: Implement WBFT-specific header validation
-        // This will be implemented in Phase 3.3 (HeaderValidator trait)
-        // For now, accept all headers to allow integration testing
+impl<H> HeaderValidator<H> for WbftConsensus
+where
+    H: alloy_consensus::BlockHeader + reth_primitives_traits::BlockHeader,
+{
+    fn validate_header(&self, header: &SealedHeader<H>) -> Result<(), ConsensusError> {
+        // WBFT header validation:
+        // 1. Parse and validate extra data structure
+        // 2. Verify committed seal (BLS aggregated signature)
+        // 3. Check quorum requirements
+
+        // Skip genesis block
+        if header.number() == 0 {
+            return Ok(());
+        }
+
+        // Parse WbftExtra from header extra_data
+        let extra = crate::header::WbftExtra::decode(header.extra_data())
+            .map_err(|e| ConsensusError::BaseFeeMissing)?; // TODO: Better error type
+
+        // Committed seal must be present for non-genesis blocks
+        let committed_seal = extra.committed_seal
+            .ok_or(ConsensusError::BaseFeeMissing)?; // TODO: Better error type
+
+        // Verify quorum: at least 2f+1 validators signed
+        // For now, just check that bitmap is not empty
+        // Full implementation will verify BLS signatures and validator set
+        if committed_seal.bitmap.count() == 0 {
+            return Err(ConsensusError::BaseFeeMissing); // TODO: Better error type
+        }
+
         Ok(())
     }
 
     fn validate_header_against_parent(
         &self,
-        _header: &SealedHeader<H>,
-        _parent: &SealedHeader<H>,
+        header: &SealedHeader<H>,
+        parent: &SealedHeader<H>,
     ) -> Result<(), ConsensusError> {
-        // TODO: Implement WBFT-specific parent validation
-        // This will be implemented in Phase 3.3 (HeaderValidator trait)
-        // For now, accept all headers to allow integration testing
+        // WBFT parent validation:
+        // 1. Verify block number is parent + 1
+        // 2. Verify timestamp is after parent
+        // 3. Verify parent hash matches
+
+        // Use reth's built-in parent validation
+        reth_consensus_common::validation::validate_against_parent_hash_number(
+            header.header(),
+            parent,
+        )?;
+
+        // Verify timestamp progression
+        reth_consensus_common::validation::validate_against_parent_timestamp(
+            header.header(),
+            parent.header(),
+        )?;
+
+        // WBFT-specific validation
+        // In the future, we will verify:
+        // - Proposer selection based on round and validator set
+        // - Round progression rules
+        // - Epoch transitions
+
         Ok(())
     }
 }
