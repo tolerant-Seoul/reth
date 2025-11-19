@@ -7543,6 +7543,7 @@ dependencies = [
  "reth-ethereum-forks",
  "reth-network-peers",
  "reth-primitives-traits",
+ "serde",
  "serde_json",
 ]
 
@@ -7787,7 +7788,10 @@ dependencies = [
  "metrics",
  "reth-chainspec",
  "reth-consensus",
+ "reth-consensus-common",
+ "reth-execution-types",
  "reth-primitives",
+ "reth-primitives-traits",
  "serde",
  "thiserror 2.0.17",
  "tokio",

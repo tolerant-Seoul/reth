@@ -20,6 +20,8 @@ mod api;
 mod info;
 /// The chain spec module.
 mod spec;
+/// WBFT consensus configuration
+mod wbft;
 
 pub use alloy_chains::{Chain, ChainKind, NamedChain};
 /// Re-export for convenience
@@ -32,6 +34,10 @@ pub use spec::test_fork_ids;
 pub use spec::{
     make_genesis_header, BaseFeeParams, BaseFeeParamsKind, ChainSpec, ChainSpecBuilder,
     ChainSpecProvider, DepositContract, ForkBaseFeeParams, DEV, HOLESKY, HOODI, MAINNET, SEPOLIA,
+};
+pub use wbft::{
+    SystemContract, SystemContractUpgrade, SystemContracts, WbftChainConfig, WbftConfig,
+    WbftInit, WbftTransition,
 };
 
 use reth_primitives_traits::sync::OnceLock;
