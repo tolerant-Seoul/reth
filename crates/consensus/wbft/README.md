@@ -26,59 +26,30 @@ This crate implements the WBFT consensus protocol, a Byzantine Fault Tolerant co
 
 ## Current Implementation Status
 
-### Phase 1: Foundation (Completed)
+### Phase 1-4: Core Implementation (Completed)
 
-- ✅ Core data structures (View, Subject, State)
-- ✅ BLS signature implementation
-- ✅ Signature aggregation
-- ✅ Sealer set bitmap
-- ✅ Message data types (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
+- ✅ BLS12-381 signature system with aggregation
+- ✅ Validator set management and proposer selection
+- ✅ 3-phase consensus protocol (PRE-PREPARE, PREPARE, COMMIT)
+- ✅ Round change mechanism with timeout handling
+- ✅ Block header extra data (WbftExtra)
+- ✅ Consensus trait implementation for reth integration
+- ✅ ChainSpec and Genesis integration
+- ✅ System contract interfaces
+- ✅ Epoch management
 
-### Phase 2: Core State Machine (Completed)
+### Phase 5: Testing and Documentation (Completed)
 
-- ✅ Core consensus engine structure
-- ✅ Backend trait for blockchain integration
-- ✅ MessageSet for message storage
-- ✅ State transition handlers (AcceptRequest → Preprepared → Prepared → Committed)
-- ✅ Round change message handling
-- ✅ Quorum calculation and validation
-- ✅ Validator trait and DefaultValidator
-- ✅ ValidatorSet trait and DefaultValidatorSet
-- ✅ ProposerPolicy (RoundRobin, Sticky)
-- ✅ Comprehensive test coverage (128 tests passing)
+- ✅ 249 unit tests
+- ✅ 40 integration tests (single/multi-validator, round change, epoch)
+- ✅ Performance benchmarks (BLS, messages, consensus)
+- ✅ Comprehensive documentation
 
-### Phase 3: Validation and Reth Integration (In Progress)
+## Documentation
 
-#### Phase 3.1: Block Header Extra Data (Completed)
-- ✅ WBFTExtra structure for block header extra data
-- ✅ EpochInfo and Candidate types for validator management
-- ✅ prepare_seal_hash function for BLS signing
-- ✅ RLP encoding/decoding with Option handling
-
-#### Phase 3.2: Consensus Trait Implementation (Completed)
-- ✅ WbftConsensus struct with configuration
-- ✅ HeaderValidator trait implementation (stub for Phase 3.3)
-- ✅ Consensus trait with validate_body_against_header
-- ✅ Consensus trait with validate_block_pre_execution
-- ✅ FullConsensus trait implementation (stub for Phase 3.4)
-
-#### Phase 3.3: HeaderValidator Trait Implementation (Completed)
-- ✅ validate_header() with WBFT extra data parsing
-- ✅ Committed seal verification (basic quorum check)
-- ✅ validate_header_against_parent() with reth's built-in validation
-- ✅ Block number, timestamp, and parent hash validation
-
-#### Phase 3.4: FullConsensus Trait Implementation (Completed)
-- ✅ validate_block_post_execution() with epoch validation
-- ✅ Epoch block detection and epoch info validation
-- ✅ Stub implementation for post-execution validation (TODOs for Phase 3.5+)
-
-### Next Phases
-
-- Phase 3.5: ChainSpec Integration
-- Phase 3.6: Genesis Initialization
-- Phase 4: Network integration
-- Phase 5: Testing and optimization
+- [Architecture Guide](../../../docs/consensus/wbft/architecture.md) - System design and components
+- [Integration Guide](../../../docs/consensus/wbft/integration.md) - How to integrate WBFT
+- [API Reference](../../../docs/consensus/wbft/api.md) - Complete API documentation
 
 ## Usage
 
@@ -203,32 +174,36 @@ let is_regular = consensus.is_epoch_block(5); // false
 Run tests with:
 
 ```bash
+# Unit tests
+cargo test -p reth-consensus-wbft --lib
+
+# Integration tests
+cargo test -p reth-consensus-wbft --test '*'
+
+# All tests
 cargo test -p reth-consensus-wbft
+
+# Benchmarks
+cargo bench -p reth-consensus-wbft
 ```
 
-All 146 unit tests currently pass, covering:
-- BLS key generation and serialization
-- Signature creation and verification
-- Signature aggregation (2-7 validators)
-- Sealer set bitmap operations
-- View ordering and comparison
-- RLP encoding/decoding
-- Message creation and validation (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
-- Message signature verification
-- WbftMessage trait implementation
-- Core state machine transitions
-- Message handling (PRE-PREPARE, PREPARE, COMMIT, ROUND-CHANGE)
-- Quorum calculation
-- Proposer rotation
-- MessageSet operations
-- Validator trait and DefaultValidator
-- ValidatorSet trait and DefaultValidatorSet
-- ProposerPolicy (RoundRobin, Sticky)
-- WBFTExtra encoding/decoding with Option handling
-- EpochInfo and Candidate structures
-- prepare_seal_hash for different seal types and rounds
-- WbftConsensus configuration and creation
-- Epoch block detection
+**Test Coverage:**
+
+- **249 unit tests** covering all modules
+- **40 integration tests** covering:
+  - Single validator consensus
+  - Multi-validator consensus (3/4/7 validators)
+  - Round change scenarios
+  - Epoch transitions
+  - Quorum verification
+  - Proposer rotation
+
+**Benchmarks:**
+
+- BLS signature operations (sign, verify, aggregate)
+- Message encoding/decoding throughput
+- Consensus round latency
+- Validator set operations
 
 ## Dependencies
 
