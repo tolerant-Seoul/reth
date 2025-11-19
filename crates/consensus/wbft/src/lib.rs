@@ -30,6 +30,7 @@ pub mod core;
 pub mod genesis;
 pub mod header;
 pub mod messages;
+pub mod network;
 pub mod types;
 pub mod validator;
 
@@ -62,3 +63,9 @@ pub use consensus::{WbftConfig, WbftConsensus};
 
 // Re-export genesis types
 pub use genesis::{create_initial_extra_data, validate_genesis_extra_data, GenesisError};
+
+// Re-export network types
+pub use network::{
+    is_valid_message_code, supported_message_codes, WbftCapability, WbftMessageCode,
+    WbftProtocolMessage, WBFT_PROTOCOL_ID, WBFT_VERSION,
+};
