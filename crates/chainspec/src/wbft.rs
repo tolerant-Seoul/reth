@@ -4,7 +4,7 @@
 //! consensus, corresponding to go-stablenet's AnzeonConfig.
 
 use alloc::collections::BTreeMap as HashMap;
-use alloc::{string::String, vec::Vec};
+use alloc::{format, string::String, string::ToString, vec::Vec};
 use alloy_primitives::{hex, Address, U256};
 use serde::{Deserialize, Serialize};
 

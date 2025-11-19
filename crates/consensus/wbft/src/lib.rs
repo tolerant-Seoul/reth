@@ -27,6 +27,7 @@
 pub mod bls;
 pub mod consensus;
 pub mod core;
+pub mod genesis;
 pub mod header;
 pub mod messages;
 pub mod types;
@@ -58,3 +59,6 @@ pub use header::{prepare_seal_hash, Candidate, EpochInfo, SealType, WbftExtra};
 
 // Re-export consensus types
 pub use consensus::{WbftConfig, WbftConsensus};
+
+// Re-export genesis types
+pub use genesis::{create_initial_extra_data, validate_genesis_extra_data, GenesisError};
