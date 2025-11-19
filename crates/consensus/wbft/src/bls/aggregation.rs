@@ -177,6 +177,42 @@ mod tests {
     }
 
     #[test]
+    fn test_aggregate_seven_signatures() {
+        // Create 7 validators (typical BFT setup: 3f+1 = 7 for f=2)
+        let validators: Vec<_> = (0..7).map(|_| SecretKey::random()).collect();
+        let public_keys: Vec<_> = validators.iter().map(|sk| sk.public_key()).collect();
+
+        let message = b"block hash for 7 validators";
+
+        // All 7 validators sign
+        let signatures: Vec<_> = validators.iter().map(|sk| sk.sign(message)).collect();
+
+        let agg_sig = aggregate_signatures(&signatures).unwrap();
+
+        // Verify with all 7 public keys
+        let pk_refs: Vec<_> = public_keys.iter().collect();
+        assert!(verify_aggregated(&pk_refs, message, &agg_sig).unwrap());
+    }
+
+    #[test]
+    fn test_aggregate_quorum_of_seven() {
+        // 7 validators, quorum is 5 (2f+1 where f=2)
+        let validators: Vec<_> = (0..7).map(|_| SecretKey::random()).collect();
+        let public_keys: Vec<_> = validators.iter().map(|sk| sk.public_key()).collect();
+
+        let message = b"quorum test";
+
+        // Only 5 validators sign (quorum)
+        let signatures: Vec<_> = validators.iter().take(5).map(|sk| sk.sign(message)).collect();
+
+        let agg_sig = aggregate_signatures(&signatures).unwrap();
+
+        // Verify with the 5 public keys that signed
+        let pk_refs: Vec<_> = public_keys.iter().take(5).collect();
+        assert!(verify_aggregated(&pk_refs, message, &agg_sig).unwrap());
+    }
+
+    #[test]
     fn test_aggregate_verification_fails_wrong_message() {
         let sk1 = SecretKey::random();
         let sk2 = SecretKey::random();

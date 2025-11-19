@@ -208,6 +208,15 @@ mod tests {
     }
 
     #[test]
+    fn test_quorum_size_3_validators() {
+        let validators = create_test_validators(3);
+        let set = DefaultValidatorSet::new(validators).unwrap();
+
+        assert_eq!(set.f(), 0); // (3-1)/3 = 0
+        assert_eq!(set.quorum_size(), 1); // 2*0+1 = 1
+    }
+
+    #[test]
     fn test_quorum_size_4_validators() {
         let validators = create_test_validators(4);
         let set = DefaultValidatorSet::new(validators).unwrap();
