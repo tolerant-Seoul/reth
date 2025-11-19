@@ -352,27 +352,79 @@ impl<B: Backend> Core<B> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::backend::BackendError;
+    use crate::validator::{DefaultValidator, DefaultValidatorSet, ValidatorSet};
     use alloy_primitives::{Bytes, U256};
 
     /// Mock backend for testing
-    struct MockBackend;
+    struct MockBackend {
+        address: Address,
+        validators: std::sync::Arc<DefaultValidatorSet>,
+    }
+
+    impl MockBackend {
+        fn new() -> Self {
+            let validators = vec![
+                DefaultValidator::new(Address::from([0x01; 20]), [0x42; 48]),
+                DefaultValidator::new(Address::from([0x02; 20]), [0x43; 48]),
+                DefaultValidator::new(Address::from([0x03; 20]), [0x44; 48]),
+                DefaultValidator::new(Address::from([0x04; 20]), [0x45; 48]),
+            ];
+            Self {
+                address: Address::from([0x01; 20]),
+                validators: std::sync::Arc::new(DefaultValidatorSet::new(validators).unwrap()),
+            }
+        }
+    }
 
     impl Backend for MockBackend {
-        fn verify_proposal(&self, _proposal: &Bytes) -> Result<(), Box<dyn std::error::Error>> {
+        fn address(&self) -> Address {
+            self.address
+        }
+
+        fn validators(
+            &self,
+            _proposal: &Bytes,
+        ) -> Result<std::sync::Arc<dyn ValidatorSet>, BackendError> {
+            Ok(self.validators.clone())
+        }
+
+        fn verify_proposal(&self, _proposal: &Bytes) -> Result<(), BackendError> {
             Ok(())
         }
 
-        fn commit(
+        fn commit(&self, _hash: B256, _seals: Vec<[u8; 96]>) -> Result<(), BackendError> {
+            Ok(())
+        }
+
+        fn broadcast(&self, _message_code: u8, _payload: &[u8]) -> Result<(), BackendError> {
+            Ok(())
+        }
+
+        fn gossip(&self, _message_code: u8, _payload: &[u8]) -> Result<(), BackendError> {
+            Ok(())
+        }
+
+        fn sign(&self, _data: &[u8]) -> Vec<u8> {
+            vec![0x00; 65] // Dummy ECDSA signature
+        }
+
+        fn sign_bls(&self, _data: &[u8]) -> [u8; 96] {
+            [0x00; 96] // Dummy BLS signature
+        }
+
+        fn check_signature(
             &self,
-            _hash: B256,
-            _seals: Vec<[u8; 96]>,
-        ) -> Result<(), Box<dyn std::error::Error>> {
+            _data: &[u8],
+            _addr: Address,
+            _sig: &[u8],
+        ) -> Result<(), BackendError> {
             Ok(())
         }
     }
 
     fn create_test_core() -> Core<MockBackend> {
-        let backend = Arc::new(MockBackend);
+        let backend = Arc::new(MockBackend::new());
         let validators = vec![
             Address::from([0x01; 20]),
             Address::from([0x02; 20]),
@@ -400,7 +452,7 @@ mod tests {
         assert_eq!(core.quorum_size(), 3); // 4 validators: f=1, quorum=3
 
         // Test with 7 validators
-        let backend = Arc::new(MockBackend);
+        let backend = Arc::new(MockBackend::new());
         let validators = (0..7).map(|i| Address::from([i as u8; 20])).collect();
         let core = Core::new(backend, validators, Address::from([0x00; 20]));
         assert_eq!(core.quorum_size(), 5); // 7 validators: f=2, quorum=5
