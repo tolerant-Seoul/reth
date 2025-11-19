@@ -48,7 +48,20 @@ serde = { workspace = true, features = ["derive"] }
 [dev-dependencies]
 tokio = { workspace = true, features = ["full", "test-util"] }
 hex = "0.4"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [features]
 default = []
 test-utils = []
+
+[[bench]]
+name = "bls"
+harness = false
+
+[[bench]]
+name = "messages"
+harness = false
+
+[[bench]]
+name = "consensus"
+harness = false
