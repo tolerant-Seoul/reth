@@ -21,6 +21,7 @@
 //! - `header`: Block header extra data structures
 //! - `genesis`: Genesis block initialization
 //! - `sealer`: Block sealing with BLS signature aggregation
+//! - `epoch`: Epoch management and validator set transitions
 
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
@@ -28,6 +29,7 @@
 pub mod bls;
 pub mod consensus;
 pub mod core;
+pub mod epoch;
 pub mod genesis;
 pub mod header;
 pub mod messages;
@@ -76,3 +78,6 @@ pub use network::{
 pub use sealer::{
     SealResult, SealResultBuilder, SealVerificationContext, SealerError, WbftSealer,
 };
+
+// Re-export epoch types
+pub use epoch::{EpochError, EpochManager};
