@@ -20,6 +20,7 @@
 //! - `network`: P2P message handling and broadcasting
 //! - `header`: Block header extra data structures
 //! - `genesis`: Genesis block initialization
+//! - `sealer`: Block sealing with BLS signature aggregation
 
 #![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
 #![cfg_attr(not(test), warn(unused_crate_dependencies))]
@@ -31,6 +32,7 @@ pub mod genesis;
 pub mod header;
 pub mod messages;
 pub mod network;
+pub mod sealer;
 pub mod types;
 pub mod validator;
 
@@ -68,4 +70,9 @@ pub use genesis::{create_initial_extra_data, validate_genesis_extra_data, Genesi
 pub use network::{
     is_valid_message_code, supported_message_codes, WbftCapability, WbftMessageCode,
     WbftProtocolMessage, WBFT_PROTOCOL_ID, WBFT_VERSION,
+};
+
+// Re-export sealer types
+pub use sealer::{
+    SealResult, SealResultBuilder, SealVerificationContext, SealerError, WbftSealer,
 };
