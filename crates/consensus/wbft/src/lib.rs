@@ -28,6 +28,7 @@
 
 pub mod bls;
 pub mod consensus;
+pub mod contracts;
 pub mod core;
 pub mod epoch;
 pub mod genesis;
@@ -81,3 +82,8 @@ pub use sealer::{
 
 // Re-export epoch types
 pub use epoch::{EpochError, EpochManager};
+
+// Re-export contracts types
+pub use contracts::{
+    ContractValidatorProvider, GovValidator, GovValidatorError, ValidatorProviderError,
+};

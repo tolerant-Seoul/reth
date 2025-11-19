@@ -391,3 +391,33 @@ cargo check --workspace --all-features
 # Check documentation
 cargo docs --document-private-items 
 ```
+
+## WBFT Implementation Guidelines
+
+### Terminology
+- **ALWAYS** use "WBFT" as the acronym throughout all code, comments, and documentation
+- **NEVER** expand WBFT to "Wemix Byzantine Fault Tolerant" or use the term "Wemix"
+- Use descriptive terms like "BFT consensus", "Byzantine Fault Tolerant", or "consensus protocol" when explanation is needed
+- In documentation, refer to it as "WBFT consensus protocol" without expansion
+
+### Examples
+```rust
+// ✅ GOOD
+/// WBFT consensus implementation
+pub struct WbftConsensus { ... }
+
+// WBFT uses BLS signature aggregation for efficient consensus
+fn aggregate_signatures() { ... }
+
+// ✅ GOOD
+//! WBFT (Byzantine Fault Tolerant) Consensus Implementation
+
+// ❌ BAD - Never use
+/// Wemix Byzantine Fault Tolerant consensus
+/// WBFT (Wemix Byzantine Fault Tolerant)
+```
+
+## Important Notes
+
+- NEVER include Co-Authored-By or any co-author information in git commit messages
+- NEVER add "🤖 Generated with [Claude Code]" or similar attribution in commits
