@@ -3,7 +3,7 @@
 use crate::{
     common::{Attached, LaunchContextWith, WithConfigs},
     hooks::NodeHooks,
-    rpc::{EngineValidatorAddOn, EngineValidatorBuilder, RethRpcAddOns, RpcHandle},
+    rpc::{EngineShutdown, EngineValidatorAddOn, EngineValidatorBuilder, RethRpcAddOns, RpcHandle},
     setup::build_networked_pipeline,
     AddOns, AddOnsContext, FullNode, LaunchContext, LaunchNode, NodeAdapter,
     NodeBuilderWithComponents, NodeComponents, NodeComponentsBuilder, NodeHandle, NodeTypesAdapter,
@@ -13,6 +13,7 @@ use futures::{stream_select, StreamExt};
 use reth_chainspec::{EthChainSpec, EthereumHardforks};
 use reth_engine_service::service::{ChainEvent, EngineService};
 use reth_engine_tree::{
+    chain::FromOrchestrator,
     engine::{EngineApiRequest, EngineRequestHandler},
     tree::TreeConfig,
 };
@@ -31,7 +32,7 @@ use reth_node_core::{
 use reth_node_events::node;
 use reth_provider::{
     providers::{BlockchainProvider, NodeTypesForProvider},
-    BlockNumReader,
+    BlockNumReader, MetadataProvider,
 };
 use reth_tasks::TaskExecutor;
 use reth_tokio_util::EventSender;
@@ -39,6 +40,7 @@ use reth_tracing::tracing::{debug, error, info};
 use std::{future::Future, pin::Pin, sync::Arc};
 use tokio::sync::{mpsc::unbounded_channel, oneshot};
 use tokio_stream::wrappers::UnboundedReceiverStream;
+use tracing::warn;
 
 /// The engine node launcher.
 #[derive(Debug)]
@@ -98,8 +100,24 @@ impl EngineNodeLauncher {
             .with_adjusted_configs()
             // Create the provider factory
             .with_provider_factory::<_, <CB::Components as NodeComponents<T>>::Evm>().await?
-            .inspect(|_| {
+            .inspect(|ctx| {
                 info!(target: "reth::cli", "Database opened");
+                match ctx.provider_factory().storage_settings() {
+                    Ok(settings) => {
+                        info!(
+                            target: "reth::cli",
+                            ?settings,
+                            "Storage settings"
+                        );
+                    },
+                    Err(err) => {
+                        warn!(
+                            target: "reth::cli",
+                            ?err,
+                            "Failed to get storage settings"
+                        );
+                    },
+                }
             })
             .with_prometheus_server().await?
             .inspect(|this| {
@@ -243,8 +261,16 @@ impl EngineNodeLauncher {
             )),
         );
 
-        let RpcHandle { rpc_server_handles, rpc_registry, engine_events, beacon_engine_handle } =
-            add_ons.launch_add_ons(add_ons_ctx).await?;
+        let RpcHandle {
+            rpc_server_handles,
+            rpc_registry,
+            engine_events,
+            beacon_engine_handle,
+            engine_shutdown: _,
+        } = add_ons.launch_add_ons(add_ons_ctx).await?;
+
+        // Create engine shutdown handle
+        let (engine_shutdown, mut shutdown_rx) = EngineShutdown::new();
 
         // Run consensus engine to completion
         let initial_target = ctx.initial_backfill_target()?;
@@ -278,6 +304,14 @@ impl EngineNodeLauncher {
             // advance the chain and await payloads built locally to add into the engine api tree handler to prevent re-execution if that block is received as payload from the CL
             loop {
                 tokio::select! {
+                    shutdown_req = &mut shutdown_rx => {
+                        if let Ok(req) = shutdown_req {
+                            debug!(target: "reth::cli", "received engine shutdown request");
+                            engine_service.orchestrator_mut().handler_mut().handler_mut().on_event(
+                                FromOrchestrator::Terminate { tx: req.done_tx }.into()
+                            );
+                        }
+                    }
                     payload = built_payloads.select_next_some() => {
                         if let Some(executed_block) = payload.executed_block() {
                             debug!(target: "reth::cli", block=?executed_block.recovered_block.num_hash(),  "inserting built payload");
@@ -349,6 +383,7 @@ impl EngineNodeLauncher {
                 rpc_registry,
                 engine_events,
                 beacon_engine_handle,
+                engine_shutdown,
             },
         };
         // Notify on node started

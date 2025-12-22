@@ -1,5 +1,6 @@
 use alloy_primitives::{BlockNumber, B256};
 use metrics::{Counter, Histogram};
+use parking_lot::RwLock;
 use reth_db_api::DatabaseError;
 use reth_errors::{ProviderError, ProviderResult};
 use reth_metrics::Metrics;
@@ -13,14 +14,14 @@ use reth_trie::{
     hashed_cursor::{HashedCursorFactory, HashedPostStateCursorFactory},
     trie_cursor::{InMemoryTrieCursorFactory, TrieCursorFactory},
     updates::TrieUpdatesSorted,
-    HashedPostState, HashedPostStateSorted, KeccakKeyHasher,
+    HashedPostStateSorted, KeccakKeyHasher,
 };
 use reth_trie_db::{
     DatabaseHashedCursorFactory, DatabaseHashedPostState, DatabaseTrieCursorFactory,
 };
 use std::{
     collections::{hash_map::Entry, HashMap},
-    sync::{Arc, RwLock},
+    sync::Arc,
     time::{Duration, Instant},
 };
 use tracing::{debug, debug_span, instrument};
@@ -233,13 +234,10 @@ where
                 let _guard = debug_span!(target: "providers::state::overlay", "Retrieving hashed state reverts").entered();
 
                 let start = Instant::now();
-                // TODO(mediocregopher) make from_reverts return sorted
-                // https://github.com/paradigmxyz/reth/issues/19382
-                let res = HashedPostState::from_reverts::<KeccakKeyHasher>(
+                let res = HashedPostStateSorted::from_reverts::<KeccakKeyHasher>(
                     provider.tx_ref(),
                     from_block + 1..,
-                )?
-                .into_sorted();
+                )?;
                 retrieve_hashed_state_reverts_duration = start.elapsed();
                 res
             };
@@ -328,9 +326,7 @@ where
         let db_tip_block = self.get_db_tip_block_number(provider)?;
 
         // If the overlay is present in the cache then return it directly.
-        if let Some(overlay) =
-            self.overlay_cache.as_ref().read().expect("poisoned mutex").get(&db_tip_block)
-        {
+        if let Some(overlay) = self.overlay_cache.as_ref().read().get(&db_tip_block) {
             return Ok(overlay.clone());
         }
 
@@ -338,13 +334,7 @@ where
         // and then check the cache again in case some other thread populated the cache since we
         // checked with the read-lock. If still not present we calculate and populate.
         let mut cache_miss = false;
-        let overlay = match self
-            .overlay_cache
-            .as_ref()
-            .write()
-            .expect("poisoned mutex")
-            .entry(db_tip_block)
-        {
+        let overlay = match self.overlay_cache.as_ref().write().entry(db_tip_block) {
             Entry::Occupied(entry) => entry.get().clone(),
             Entry::Vacant(entry) => {
                 cache_miss = true;
